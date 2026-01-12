@@ -1,0 +1,28 @@
+{
+  "class": "Introdução Engenharia Informática",
+  "date": "January 13, 2026",
+  "questions_folder": "gift",
+  "duration":"60 minutes",
+  "instructions":"Please answer all questions. Read the instructions for each section carefully.",
+  "parts": [
+    {
+      "part": "Multiple Choice",
+      "classification": 10,
+      "questions": [
+        { "topic": "t1_test", "quantity": 2 },
+        { "topic": "t2_test", "quantity": 4 },
+        { "topic": "t3_test", "quantity": 2 },
+        { "topic": "t4_test", "quantity": 3 },
+        { "topic": "t5_test", "quantity": 3 },
+        { "topic": "t6_test", "quantity": 2 },
+        { "topic": "t7_test", "quantity": 2 },
+        { "topic": "t8_test", "quantity": 2 }
+      ]
+    },
+    {
+      "part": "Open Answer",
+      "classification": 10,
+      "questions": [{ "topic": "general_test", "quantity": 5 }]
+    }
+  ]
+}
