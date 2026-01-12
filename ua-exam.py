@@ -1,12 +1,11 @@
 import argparse
 import csv
+import datetime
 import json
 import logging
 import os
 import random
-import re
 import sys
-from datetime import datetime
 
 import gift_parser
 
@@ -58,7 +57,7 @@ def clean_latex_text(text):
 
 def generate_header(config):
     course_name = config.get("class", "Exam")
-    date_str = config.get("date", datetime.now().strftime("%B %d, %Y"))
+    date_str = config.get("date", datetime.datetime.now().strftime("%B %d, %Y"))
 
     duration = config.get("duration", "90 Minutes")
     instructions = config.get(
