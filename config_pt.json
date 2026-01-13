@@ -1,0 +1,31 @@
+{
+  "class": "Introdução Engenharia Informática",
+  "date": "January 13, 2026",
+  "logo": "logo/logo_ua_cropped.pdf",
+  "exam": "Normal",
+  "lang": "pt",
+  "questions_folder": "gift/pt",
+  "duration": "60 minutos",
+  "instructions": "Por favor, responda a todas as questões. Leia atentamente as instruções de cada part.",
+  "parts": [
+    {
+      "part": "Escolha Múltipla",
+      "classification": 10,
+      "questions": [
+        { "topic": "t1_pt_test", "quantity": 2 },
+        { "topic": "t2_pt_test", "quantity": 4 },
+        { "topic": "t3_pt_test", "quantity": 2 },
+        { "topic": "t4_pt_test", "quantity": 3 },
+        { "topic": "t5_pt_test", "quantity": 3 },
+        { "topic": "t6_pt_test", "quantity": 2 },
+        { "topic": "t7_pt_test", "quantity": 2 },
+        { "topic": "t8_pt_test", "quantity": 2 }
+      ]
+    },
+    {
+      "part": "Resposta Aberta",
+      "classification": 10,
+      "questions": [{ "topic": "general_pt_test", "quantity": 5 }]
+    }
+  ]
+}

@@ -16,56 +16,107 @@ logger = logging.getLogger(__name__)
 
 def clean_latex_text(text):
     """
-    Escapes special LaTeX characters and handles basic Markdown code blocks correctly.
-    Splits by backticks first to avoid double-escaping the LaTeX commands generated for code.
+    Escapes special LaTeX characters in normal text, but preserves:
+    1. Code blocks enclosed in backticks (`code`) -> Converts to fully escaped \texttt{}
+    2. Math formulas enclosed in dollar signs ($math$) -> Preserves as is
     """
     if not text:
         return ""
 
-    # Split by backticks to separate normal text from code blocks
-    # Example: "Use `cron` now" -> ['Use ', 'cron', ' now']
-    parts = text.split("`")
+    # Helper function to escape strict text
+    def escape_chars(s):
+        s = s.replace("\\", "\\textbackslash ")
+        s = s.replace("{", "\\{").replace("}", "\\}")
+        s = s.replace("%", "\\%").replace("#", "\\#")
+        s = s.replace("&", "\\&").replace("_", "\\_")
+        # Note: We do NOT escape $ here, because we handle it as a separator later
+        s = s.replace("^", "\\textasciicircum ")
+        s = s.replace("~", "\\textasciitilde ")
+        return s
 
+    # 1. Split by backticks to handle `code`
+    parts = text.split("`")
     processed_parts = []
+
     for i, part in enumerate(parts):
-        if i % 2 == 0:
-            # NORMAL TEXT: Escape all LaTeX special chars
-            # We must escape backslash first to avoid escaping the escapes
+        if i % 2 == 1:
+            # --- CODE BLOCK (Inside backticks) ---
+            # We must escape ALL special characters manually because \texttt{}
+            # renders them normally (it is NOT a verbatim environment).
+
+            # 1. Backslash must be first to avoid escaping the escapes
             part = part.replace("\\", "\\textbackslash ")
+
+            # 2. Escape critical structure chars
             part = part.replace("{", "\\{").replace("}", "\\}")
             part = part.replace("%", "\\%").replace("#", "\\#")
-            part = part.replace("&", "\\&").replace("_", "\\_")
-            part = part.replace("$", "\\$").replace("^", "\\textasciicircum ")
-            part = part.replace("~", "\\textasciitilde ")
-            processed_parts.append(part)
-        else:
-            # CODE BLOCK (Inside backticks):
-            # We wrap this in \texttt{}, but we must still escape characters
-            # INSIDE the code that would break LaTeX (like } or \),
-            # but NOT the \texttt wrapper itself.
-            part = part.replace("\\", "\\textbackslash ")
-            part = part.replace("{", "\\{").replace("}", "\\}")
-            part = part.replace("%", "\\%").replace("#", "\\#")
-            part = part.replace("&", "\\&").replace("_", "\\_")
-            part = part.replace("$", "\\$").replace("^", "\\textasciicircum ")
+
+            # 3. FIX: Escape Table Alignment & Math chars
+            part = part.replace("&", "\\&")  # <--- Fixes your specific error
+            part = part.replace("$", "\\$")  # Prevents code from triggering math
+            part = part.replace("_", "\\_")  # Prevents subscripts
+            part = part.replace("^", "\\textasciicircum ")  # Prevents superscripts
             part = part.replace("~", "\\textasciitilde ")
 
             processed_parts.append(f"\\texttt{{{part}}}")
+        else:
+            # --- NORMAL TEXT (May contain $math$) ---
+            # Split this segment by '$' to find math formulas
+            math_splits = part.split("$")
+            for j, subpart in enumerate(math_splits):
+                if j % 2 == 1:
+                    # Inside $...$ -> This is Math. Preserve it exactly.
+                    processed_parts.append(f"${subpart}$")
+                else:
+                    # Outside $...$ -> This is Text. Escape it.
+                    escaped_text = escape_chars(subpart)
+                    processed_parts.append(escaped_text)
 
     return "".join(processed_parts)
 
 
-def generate_header(config):
+translations = {
+    "pt": {
+        "date": "Data",
+        "student_name": "Nome do Estudante",
+        "student_number": "N.º de Estudante",
+        "classification": "Classificação",
+        "exam_instructions": "Instruções do Exame",
+        "duration": "Duração",
+        "duration_default": "60 minutos",
+        "instructions": "Instruções",
+        "instructions_default": "Por favor, responda a todas as questões. Leia atentamente as instruções de cada part.",
+        "exam": "Exame",
+        "exam_default": "Normal",
+    },
+    "en": {
+        "date": "Date",
+        "student_name": "Student Name",
+        "student_number": "Student No.",
+        "classification": "Classification",
+        "exam_instructions": "Exam Instructions",
+        "duration": "Duration",
+        "duration_default": "60 minutes",
+        "instructions": "Instructions",
+        "instructions_default": "Please answer all questions. Read the instructions for each part carefully.",
+        "exam": "Exam",
+        "exam_default": "Normal",
+    },
+}
+
+
+def generate_header(config, lang: str = "pt"):
+    t = translations[lang]
+
     course_name = config.get("class", "Exam")
     date_str = config.get("date", datetime.datetime.now().strftime("%B %d, %Y"))
 
-    duration = config.get("duration", "90 Minutes")
-    instructions = config.get(
-        "instructions",
-        "Please answer all questions. Read the instructions for each section carefully.",
-    )
+    duration = config.get("duration", t["duration_default"])
+    instructions = config.get("instructions", t["instructions_default"])
 
-    logo_path = "logo/logo_ua_cropped.pdf"
+    exam_type = config.get("exam", t["exam_default"])
+
+    logo_path = config.get("logo", "logo/logo_ua_cropped.pdf")
 
     return f"""---
 geometry: a4paper, top=2cm, bottom=2cm, left=2cm, right=2cm
@@ -99,28 +150,30 @@ header-includes:
     \\raggedleft
     {{\\Large \\textbf{{Universidade de Aveiro}}}} \\\\
     {{\\large {course_name}}} \\\\
-    {{\\small Date: {date_str}}}
+    \\vspace{{0.25cm}}
+    {{\\large {t["exam"]}: {exam_type}}} \\\\
+    {{\\small {t["date"]}: {date_str}}}
 \\end{{minipage}}
 
 \\vspace{{0.5cm}}
 \\hrule
 \\vspace{{0.5cm}}
 
-**Student Name:**
+**{t["student_name"]}:**
 
-**Student No.:**
+**{t["student_number"]}:**
 
-**Classification:**
+**{t["classification"]}:**
 
 \\vspace{{0.5cm}}
 \\hrule
 \\vspace{{0.5cm}}
 
-# Exam Instructions
+# {t["exam_instructions"]}
 
-**Duration:** {duration}
+**{t["duration"]}:** {duration}
 
-**Instructions:** {instructions}
+**{t["instructions"]}:** {instructions}
 
 \\vspace{{0.5cm}}
 \\hrule
@@ -135,11 +188,8 @@ def render_multiple_choice(index, q, points):
     md += "\\noindent\n"
     md += "\\begin{tabular}{|p{14cm}|p{1cm}|}\n\\hline\n"
 
-    labels = ["A", "B", "C", "D", "E", "F"]
     for i, opt in enumerate(q["options"]):
-        if i >= len(labels):
-            break
-        label = labels[i]
+        label = chr(65 + i)  # 65 is ASCII for 'A'. 0->A, 1->B, etc.
         clean_opt = clean_latex_text(opt["text"])
         md += f" \\textbf{{{label}.}} {clean_opt} & \\\\ \\hline\n"
 
@@ -183,16 +233,25 @@ def dispatch_renderer(index, q, points):
 
 
 def get_answer_key(q):
-    """Returns the correct label (A, B, C...) for objective questions."""
+    """
+    Returns the correct label (A, B...) for objective questions,
+    or a placeholder for open-ended questions.
+    """
     if q["type"] == "multiple_choice":
-        labels = ["A", "B", "C", "D", "E", "F"]
+        # Generate dynamic labels (A, B, C...) based on option count
+        labels = [chr(65 + i) for i in range(len(q["options"]))]
         for i, opt in enumerate(q["options"]):
-            if opt["is_correct"]:
+            if opt.get("is_correct"):
                 return labels[i] if i < len(labels) else "?"
         return "?"
+
     elif q["type"] == "true_false":
-        return "A" if q["correct"] else "B"
-    return None
+        return "A" if q.get("correct") else "B"
+
+    elif q["type"] == "essay":
+        return "--- (Open Answer)"
+
+    return "---"
 
 
 def validate_scoring(config):
@@ -244,7 +303,18 @@ def main():
 
     base_folder = config.get("questions_folder", ".")
 
-    full_markdown = generate_header(config)
+    # Extract language from config, defaulting to "pt" if missing
+    lang = config.get("lang", "pt")
+
+    # Validate that the language exists in your translations dictionary
+    if lang not in translations:
+        logger.warning(
+            f"Language '{lang}' not found in translations. Falling back to 'pt'."
+        )
+        lang = "pt"
+
+    # Pass the extracted language to the generator
+    full_markdown = generate_header(config, lang=lang)
     csv_rows = []
 
     for part_idx, part in enumerate(config["parts"], 1):
@@ -293,12 +363,9 @@ def main():
                 full_markdown += dispatch_renderer(question_counter, q, points_per_q)
 
                 ans = get_answer_key(q)
-                if ans:
-                    csv_rows.append([part_idx, question_counter, ans])
+                csv_rows.append([part_idx, question_counter, ans])
 
                 question_counter += 1
-
-        # full_markdown += "---\n\n"
 
     try:
         with open(args.output, "w", encoding="utf-8") as f:
