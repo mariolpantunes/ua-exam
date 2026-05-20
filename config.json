@@ -1,0 +1,31 @@
+{
+  "class": "Laboratórios de Sistemas e Serviços",
+  "date": "20 de Maio de 2026",
+  "logo": "logo/logo_ua_cropped.pdf",
+  "exam": "Teste01",
+  "category_prefix": "lss/test01/exam",
+  "target_score": 20.0,
+  "lang": "pt",
+  "questions_folder": "/home/mantunes/git/lss/moodle/test01/",
+  "duration": "60 minutos",
+  "instructions": "Por favor, responda a todas as questões. Leia atentamente as instruções de cada parte.",
+  "parts": [
+    {
+      "part": "Escolha Múltipla",
+      "classification": 10,
+      "questions": [
+        { "topic": "01-terminal", "quantity": 3 },
+        { "topic": "02-virtualizacao", "quantity": 4 },
+        { "topic": "03-contentores", "quantity": 4 },
+        { "topic": "04-servidores-web", "quantity": 3 },
+        { "topic": "05-programacao-web", "quantity": 3 },
+        { "topic": "06-comunicacao-aplicacoes", "quantity": 3 }
+      ]
+    },
+    {
+      "part": "Resposta Aberta",
+      "classification": 10,
+      "questions": [{ "topic": "open", "quantity": 4 }]
+    }
+  ]
+}

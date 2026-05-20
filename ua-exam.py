@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import random
+import re
 import sys
 
 import gift_parser
@@ -25,11 +26,11 @@ def clean_latex_text(text):
 
     # Helper function to escape strict text
     def escape_chars(s):
+        # Escape backslash FIRST to avoid double-escaping
         s = s.replace("\\", "\\textbackslash ")
         s = s.replace("{", "\\{").replace("}", "\\}")
         s = s.replace("%", "\\%").replace("#", "\\#")
         s = s.replace("&", "\\&").replace("_", "\\_")
-        # Note: We do NOT escape $ here, because we handle it as a separator later
         s = s.replace("^", "\\textasciicircum ")
         s = s.replace("~", "\\textasciitilde ")
         return s
@@ -41,36 +42,23 @@ def clean_latex_text(text):
     for i, part in enumerate(parts):
         if i % 2 == 1:
             # --- CODE BLOCK (Inside backticks) ---
-            # We must escape ALL special characters manually because \texttt{}
-            # renders them normally (it is NOT a verbatim environment).
-
-            # 1. Backslash must be first to avoid escaping the escapes
-            part = part.replace("\\", "\\textbackslash ")
-
-            # 2. Escape critical structure chars
-            part = part.replace("{", "\\{").replace("}", "\\}")
-            part = part.replace("%", "\\%").replace("#", "\\#")
-
-            # 3. FIX: Escape Table Alignment & Math chars
-            part = part.replace("&", "\\&")  # <--- Fixes your specific error
-            part = part.replace("$", "\\$")  # Prevents code from triggering math
-            part = part.replace("_", "\\_")  # Prevents subscripts
-            part = part.replace("^", "\\textasciicircum ")  # Prevents superscripts
-            part = part.replace("~", "\\textasciitilde ")
-
-            processed_parts.append(f"\\texttt{{{part}}}")
+            # Use escape_chars for consistency, then wrap in \texttt{}
+            # But we also need to escape $ in code to avoid math mode
+            escaped_code = escape_chars(part).replace("$", "\\$")
+            processed_parts.append(f"\\texttt{{{escaped_code}}}")
         else:
             # --- NORMAL TEXT (May contain $math$) ---
             # Split this segment by '$' to find math formulas
-            math_splits = part.split("$")
-            for j, subpart in enumerate(math_splits):
-                if j % 2 == 1:
+            # Use a regex that captures the $...$ block to avoid splitting it
+            # We use () to keep the delimiter in the result list
+            math_parts = re.split(r"(\$.*?\$)", part)
+            for subpart in math_parts:
+                if subpart.startswith("$") and subpart.endswith("$"):
                     # Inside $...$ -> This is Math. Preserve it exactly.
-                    processed_parts.append(f"${subpart}$")
+                    processed_parts.append(subpart)
                 else:
                     # Outside $...$ -> This is Text. Escape it.
-                    escaped_text = escape_chars(subpart)
-                    processed_parts.append(escaped_text)
+                    processed_parts.append(escape_chars(subpart))
 
     return "".join(processed_parts)
 
@@ -99,7 +87,7 @@ translations = {
         "duration_default": "60 minutes",
         "instructions": "Instructions",
         "instructions_default": "Please answer all questions. Read the instructions for each part carefully.",
-        "exam": "Exam",
+        "exam": "Exame",
         "exam_default": "Normal",
     },
 }
@@ -234,16 +222,20 @@ def dispatch_renderer(index, q, points):
 
 def get_answer_key(q):
     """
-    Returns the correct label (A, B...) for objective questions,
+    Returns the correct label(s) (A, B...) for objective questions,
     or a placeholder for open-ended questions.
+    Handles multiple correct answers.
     """
     if q["type"] == "multiple_choice":
-        # Generate dynamic labels (A, B, C...) based on option count
         labels = [chr(65 + i) for i in range(len(q["options"]))]
+        correct_labels = []
         for i, opt in enumerate(q["options"]):
             if opt.get("is_correct"):
-                return labels[i] if i < len(labels) else "?"
-        return "?"
+                correct_labels.append(labels[i])
+        
+        if not correct_labels:
+            return "?"
+        return ", ".join(correct_labels)
 
     elif q["type"] == "true_false":
         return "A" if q.get("correct") else "B"
@@ -254,14 +246,40 @@ def get_answer_key(q):
     return "---"
 
 
-def validate_scoring(config):
+def validate_scoring(config, target_score=20.0):
     total_score = sum(part.get("classification", 0) for part in config["parts"])
-    if abs(total_score - 20.0) > 0.01:
+    if abs(total_score - target_score) > 0.01:
         logger.warning(
-            f"Scoring Mismatch: Total classification is {total_score}, expected 20."
+            f"Scoring Mismatch: Total classification is {total_score}, expected {target_score}."
         )
     else:
-        logger.info("Scoring Validation: Total classification is 20.")
+        logger.info(f"Scoring Validation: Total classification is {target_score}.")
+
+
+def normalize_category(cat):
+    """Normalizes category paths: removes leading/trailing slashes and handles hierarchy."""
+    if not cat:
+        return ""
+    return cat.strip().strip("/")
+
+
+def load_question_bank(base_folder):
+    """
+    Recursively scans base_folder for .gift and .txt files and builds a bank indexed by category.
+    """
+    bank = {}
+    for root, _, files in os.walk(base_folder):
+        for file in files:
+            if file.endswith(".gift") or file.endswith(".txt"):
+                filepath = os.path.join(root, file)
+                logger.info(f"Parsing {filepath}...")
+                questions = gift_parser.parse_gift_file(filepath)
+                for q in questions:
+                    cat = normalize_category(q.get("category", "default"))
+                    if cat not in bank:
+                        bank[cat] = []
+                    bank[cat].append(q)
+    return bank
 
 
 def main():
@@ -299,19 +317,25 @@ def main():
         sys.exit(1)
 
     logger.info(f"Generating Exam for: {config.get('class', 'Unknown Class')}")
-    validate_scoring(config)
+    
+    target_score = config.get("target_score", 20.0)
+    validate_scoring(config, target_score)
 
     base_folder = config.get("questions_folder", ".")
+    bank = load_question_bank(base_folder)
 
     # Extract language from config, defaulting to "pt" if missing
     lang = config.get("lang", "pt")
-
-    # Validate that the language exists in your translations dictionary
     if lang not in translations:
         logger.warning(
             f"Language '{lang}' not found in translations. Falling back to 'pt'."
         )
         lang = "pt"
+
+    category_prefix = normalize_category(config.get("category_prefix", ""))
+    
+    # Global tracking to prevent duplicates
+    used_questions = set()
 
     # Pass the extracted language to the generator
     full_markdown = generate_header(config, lang=lang)
@@ -339,27 +363,32 @@ def main():
             topic = q_req.get("topic")
             qty = q_req.get("quantity", 0)
 
-            filename = os.path.join(base_folder, f"{topic}.gift")
+            # Resolve category path
+            full_topic = normalize_category(topic)
+            if category_prefix:
+                full_topic = normalize_category(f"{category_prefix}/{full_topic}")
 
-            if not os.path.exists(filename):
-                logger.error(f"GIFT file not found: {filename}")
-                continue
+            pool = bank.get(full_topic, [])
+            
+            # Filter out already used questions
+            available_pool = [q for q in pool if f"{q['text']}_{q['title']}" not in used_questions]
 
-            pool = gift_parser.parse_gift_file(filename)
-
-            if len(pool) < qty:
+            if len(available_pool) < qty:
                 logger.warning(
-                    f"File {filename}: Requested {qty} questions, but only found {len(pool)}. Using all available."
+                    f"Category '{full_topic}': Requested {qty} questions, but only {len(available_pool)} available (after deduplication). Using all available."
                 )
-                selected = pool
+                selected = available_pool
             else:
-                selected = random.sample(pool, qty)
-                source_name = selected[0].get("category") if selected else filename
-                logger.info(
-                    f"  - Selected {len(selected)} questions from {source_name}"
-                )
+                selected = random.sample(available_pool, qty)
 
             for q in selected:
+                # Mark as used
+                used_questions.add(f"{q['text']}_{q['title']}")
+                
+                # SHUFFLE OPTIONS BEFORE RENDERING
+                if q["type"] == "multiple_choice":
+                    random.shuffle(q["options"])
+
                 full_markdown += dispatch_renderer(question_counter, q, points_per_q)
 
                 ans = get_answer_key(q)

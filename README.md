@@ -4,106 +4,122 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Pandoc Required](https://img.shields.io/badge/dependency-Pandoc-maroon)
 ![LaTeX Required](https://img.shields.io/badge/dependency-LaTeX-lightgrey)
-![Maintenance](https://img.shields.io/badge/maintained-yes-brightgreen)
 
-**ua-exam** is a Python CLI tool designed to automate the creation of physical paper exams from Moodle question banks (GIFT format). It allows instructors to define exam structures via a JSON configuration file, randomly select questions from specific topics, and generate a professional-grade LaTeX/Markdown document ready for PDF conversion.
+**ua-exam** is a Python CLI tool designed to automate the creation of physical paper exams from Moodle question banks (GIFT format). It allows instructors to define complex exam structures via a JSON configuration, randomly select questions from hierarchical categories, and generate professional LaTeX-ready documents.
 
 ## Key Features
 
-* **GIFT Parsing:** Natively reads standard Moodle `.gift` files (Multiple Choice, True/False, and Open Answer/Essay).
-* **Flexible Configuration:** Define exam sections, duration, instructions, and scoring logic via a simple JSON file.
-* **Questions Randomization:** Randomly selects questions from specified topics/files. Supports a **seed** argument for reproducible exams.
-* **Automatic Solutions:** Generates a companion CSV file (`_solutions.csv`) with the answer key for objective questions.
-* **Professional Layout:** Outputs clean Markdown designed for Pandoc + LaTeX, including university branding and structured student identification fields.
+* **Advanced GIFT Parsing:** 
+    * Support for `.gift` and `.txt` files.
+    * Handles **Multiple Choice**, **True/False**, and **Open Answer** (Essay).
+    * Support for **Multiple Response** (partial credits) with multi-answer solution keys.
+    * Robust handling of questions containing internal blank lines and complex formatting.
+* **Hierarchical Question Bank:**
+    * Recursive scanning of the `questions_folder`.
+    * Automatic indexing by the GIFT `$CATEGORY` directive.
+    * Flexible category matching using a global `category_prefix`.
+* **Smart Randomization & Deduplication:**
+    * **Option Shuffling:** Choices are randomized for every question to ensure variety.
+    * **Global Deduplication:** Prevents the same question from appearing twice in the same exam.
+    * **Reproducibility:** Use the `-s` (seed) flag to generate the exact same exam order.
+* **Professional LaTeX Layout:**
+    * Native support for **LaTeX Math** (`$...$`) and **Code Blocks** (`` `code` ``).
+    * Automated university branding (Logo and Header).
+    * Pre-configured identifying fields (Name, Number, Classification).
+    * Solutions generated as a CSV file, perfectly mapped to the shuffled choices.
 
 ## Project Structure
 
-Ensure your directory looks like this before running the tool:
-
 ```text
 .
-├── ua-exam.py           # Main script
-├── gift_parser.py       # GIFT parsing logic module
-├── config.json          # Exam configuration
+├── ua-exam.py           # Main execution script
+├── gift_parser.py       # GIFT parsing module
+├── config.json          # Exam configuration file
 ├── logo/
-│   └── logo_ua_cropped.pdf  # University logo (required for header)
+│   └── logo_ua_cropped.pdf  # University logo for the header
+└── gift/                # Question bank directory (scanned recursively)
 ```
 
 ## Configuration (`config.json`)
 
-The exam logic is controlled entirely by a JSON file.
+The `config.json` file controls the exam generation logic.
 
-* **`questions_folder`**: Directory where your `.gift` files are stored.
-* **`parts`**: Defines the sections of the exam.
-* **`topic`**: Corresponds to the filename of the GIFT file (without extension). E.g., `"topic": "t1_test"` looks for `gift/t1_test.gift`.
+| Field | Description | Default |
+| :--- | :--- | :--- |
+| `class` | The name of the course or exam. | `"Exam"` |
+| `date` | Date string to appear on the header. | Current Date |
+| `lang` | Language for fixed labels (`pt` or `en`). | `"pt"` |
+| `exam` | Exam type (e.g., "Normal", "Recurso", "Teste 01"). | `"Normal"` |
+| `logo` | Path to the university logo PDF. | `"logo/logo_ua_cropped.pdf"` |
+| `questions_folder` | Root directory of your GIFT/TXT files. | `"."` |
+| `category_prefix` | Common prefix for all categories. | `""` |
+| `target_score` | Total expected score for validation. | `20.0` |
+| `duration` | Exam duration string. | `"60 minutos"` |
+| `instructions` | General instructions for the exam. | (Generic) |
+| `parts` | Array of sections (see example). | Required |
 
-**Example Configuration:**
+### Example Configuration
 
 ```json
 {
-  "class": "Introdução Engenharia Informática",
-  "date": "January 13, 2026",
-  "questions_folder": "gift",
-  "duration": "60 minutes",
-  "instructions": "Please answer all questions. Read the instructions for each section carefully.",
+  "class": "Laboratórios de Sistemas e Serviços",
+  "lang": "pt",
+  "exam": "Teste 01",
+  "category_prefix": "lss/test01/exam",
+  "questions_folder": "gift/test01",
   "parts": [
     {
-      "part": "Multiple Choice",
+      "part": "Escolha Múltipla",
       "classification": 10,
       "questions": [
-        { "topic": "t1_test", "quantity": 2 },
-        { "topic": "t2_test", "quantity": 4 },
-        { "topic": "t3_test", "quantity": 2 }
+        { "topic": "01-terminal", "quantity": 3 },
+        { "topic": "02-virtualizacao", "quantity": 4 }
       ]
     },
     {
-      "part": "Open Answer",
+      "part": "Resposta Aberta",
       "classification": 10,
       "questions": [
-        { "topic": "general_test", "quantity": 5 }
+        { "topic": "open-questions", "quantity": 4 }
       ]
     }
   ]
 }
-
 ```
-
-## Requirements
-
-* **Python 3.8+**
-* **Pandoc** (for PDF conversion)
-* **LaTeX Distribution** (TeX Live, MiKTeX, or MacTeX)
-* Must include `lualatex` or `xelatex` engine.
 
 ## Usage
 
-### 1. Generate the Exam (Markdown & CSV)
+### 1. Structure GIFT Files
 
-Run the script passing your configuration file. You can optionally set a seed for reproducibility.
+Questions are selected based on the `$CATEGORY` directive. A single file can contain multiple categories.
+
+```gift
+$CATEGORY: lss/test01/exam/01-terminal
+
+::Q1:: What is the command to list files? {
+    =ls
+    ~dir
+    ~list
+}
+```
+
+### 2. Generate Exam
 
 ```bash
-# Basic usage
-python3 ua-exam.py -c config.json
-
-# With a specific output filename and random seed
-python3 ua-exam.py -c config.json -s 12345 -o final_exam.md
+python3 ua-exam.py -c config.json -s 42 -o my_exam.md
 ```
 
 **Outputs:**
+* `my_exam.md`: The generated exam.
+* `my_exam_solutions.csv`: The randomized answer key.
 
-1. `final_exam.md`: The exam content in Markdown.
-2. `final_exam_solutions.csv`: A CSV file containing the Answer Key (Part #, Question ID, Correct Option) for Multiple Choice and True/False questions.
+### 3. Convert to PDF
 
-### 2. Convert to PDF
-
-Use Pandoc to compile the Markdown into a PDF.
+Use **Pandoc** with the `lualatex` engine for best font and math support:
 
 ```bash
-pandoc final_exam.md -o final_exam.pdf --pdf-engine=lualatex
-
+pandoc my_exam.md -o my_exam.pdf --pdf-engine=lualatex
 ```
-
-*If `lualatex` is not available, you can try `--pdf-engine=xelatex`.*
 
 ## Authors
 
