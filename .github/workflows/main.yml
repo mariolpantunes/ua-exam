@@ -27,6 +27,6 @@ jobs:
       - name: Lint with ruff
         run: ruff check src test
       - name: Type check with basedpyright
-        run: basedpyright src test
+        run: basedpyright --level error src test
       - name: Run tests with unittest
         run: PYTHONPATH=src python -m unittest discover
