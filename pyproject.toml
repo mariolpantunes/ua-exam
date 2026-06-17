@@ -25,3 +25,7 @@ ua-exam = "ua_exam.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ua_exam"]
+
+[tool.basedpyright]
+failOnWarnings = false
+
