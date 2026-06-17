@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Polar Night Background Gradient -->
+    <linearGradient id="nordBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2e3440" />
+      <stop offset="100%" stop-color="#3b4252" />
+    </linearGradient>
+
+    <!-- Snow Storm Paper Gradient -->
+    <linearGradient id="nordPaper" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#eceff4" />
+      <stop offset="100%" stop-color="#d8dee9" />
+    </linearGradient>
+
+    <!-- Frost Accent Gradients -->
+    <linearGradient id="nordFrostCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#88c0d0" />
+      <stop offset="100%" stop-color="#8fbcbb" />
+    </linearGradient>
+    
+    <linearGradient id="nordFrostBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#81a1c1" />
+      <stop offset="100%" stop-color="#5e81ac" />
+    </linearGradient>
+
+    <!-- Aurora Accent Gradients -->
+    <linearGradient id="nordAuroraGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a3be8c" />
+      <stop offset="100%" stop-color="#a3be8c" />
+    </linearGradient>
+
+    <linearGradient id="nordAuroraRed" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#bf616a" />
+      <stop offset="100%" stop-color="#bf616a" />
+    </linearGradient>
+
+    <!-- Drop Shadows (Uses Nord colors for a natural dark shadow) -->
+    <filter id="nordShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#2e3440" flood-opacity="0.6" />
+    </filter>
+    <filter id="paperShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#2e3440" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- Background Base (Polar Night) -->
+  <rect width="512" height="512" rx="120" fill="url(#nordBg)" />
+
+  <!-- Outer Border (Sleek Frost Cyan Ring) -->
+  <rect x="6" y="6" width="500" height="500" rx="114" fill="none" stroke="#4c566a" stroke-width="4" opacity="0.5" />
+
+  <!-- Stylized Exam Document / Clipboard -->
+  <g filter="url(#nordShadow)">
+    <!-- Document Base Paper (Snow Storm) -->
+    <rect x="136" y="106" width="240" height="310" rx="16" fill="url(#nordPaper)" filter="url(#paperShadow)" />
+
+    <!-- Top Paper Clip (Polar Night / Frost) -->
+    <path d="M216 86 h80 a10 10 0 0 1 10 10 v20 a0 0 0 0 1 0 0 h-100 a0 0 0 0 1 0 0 v-20 a10 10 0 0 1 10 -10 Z" fill="#4c566a" />
+    <rect x="236" y="96" width="40" height="6" rx="3" fill="#3b4252" />
+
+    <!-- Folded Corner Decor -->
+    <path d="M360 106 L376 122 L360 122 Z" fill="#d8dee9" />
+
+    <!-- Exam Content / Lines -->
+    <!-- Title Area (Frost Blue) -->
+    <rect x="176" y="146" width="120" height="12" rx="6" fill="#5e81ac" />
+    <rect x="176" y="166" width="70" height="8" rx="4" fill="#81a1c1" />
+
+    <!-- Row 1: Multiple Choice Question (Aurora Green / Correct Choice) -->
+    <g transform="translate(166, 196)">
+      <!-- Checkbox Circle -->
+      <circle cx="15" cy="15" r="15" fill="url(#nordAuroraGreen)" />
+      <!-- Checkmark -->
+      <path d="M10 15 L13 18 L20 11" fill="none" stroke="#eceff4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+      <!-- Text Line 1 -->
+      <rect x="42" y="6" width="120" height="8" rx="4" fill="#3b4252" />
+      <!-- Text Line 2 -->
+      <rect x="42" y="18" width="80" height="6" rx="3" fill="#4c566a" />
+    </g>
+
+    <!-- Row 2: Multiple Choice Question (Frost Cyan Border Choice) -->
+    <g transform="translate(166, 256)">
+      <!-- Empty Checkbox Circle with Cyan Border -->
+      <circle cx="15" cy="15" r="13" fill="none" stroke="url(#nordFrostCyan)" stroke-width="3" />
+      <!-- Text Line 1 -->
+      <rect x="42" y="6" width="130" height="8" rx="4" fill="#4c566a" />
+      <!-- Text Line 2 -->
+      <rect x="42" y="18" width="60" height="6" rx="3" fill="#d8dee9" />
+    </g>
+
+    <!-- Row 3: Multiple Choice Question (Aurora Red Border Choice) -->
+    <g transform="translate(166, 316)">
+      <!-- Empty Checkbox Circle with Red Border -->
+      <circle cx="15" cy="15" r="13" fill="none" stroke="url(#nordAuroraRed)" stroke-width="3" />
+      <!-- Text Line 1 -->
+      <rect x="42" y="6" width="110" height="8" rx="4" fill="#4c566a" />
+      <!-- Text Line 2 -->
+      <rect x="42" y="18" width="90" height="6" rx="3" fill="#d8dee9" />
+    </g>
+
+    <!-- Bottom Decorative Progress Dot -->
+    <circle cx="256" cy="386" r="4" fill="#4c566a" />
+  </g>
+</svg>

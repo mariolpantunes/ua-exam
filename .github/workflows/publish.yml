@@ -1,0 +1,25 @@
+name: Publish to PyPI and LinkedIn
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  pypi:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install build tools & HTTP library
+        # Added 'requests' so we can hit the LinkedIn API later
+        run: |
+          python3 -m pip install --upgrade build requests
+          python3 -m build
+
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}

@@ -1,0 +1,41 @@
+{
+  "class": "Laboratórios de Sistemas e Serviços",
+  "date": "June 12, 2026",
+  "logo": "logo/logo_ua_cropped.pdf",
+  "exam": "Exam",
+  "target_score": 20.0,
+  "lang": "en",
+  "questions_folders": [
+  {"path": "/home/mantunes/git/lss/moodle/test01/en", "category_prefix": "lss/test01/exam"},
+  {"path": "/home/mantunes/git/lss/moodle/test02/en", "category_prefix": "lss/test02/exam"}
+  ],
+  "duration": "60 minutes",
+  "instructions": "Please answer all questions. Read the instructions for each part carefully.",
+  "parts": [
+    {
+      "part": "Multiple Choice",
+      "classification": 10,
+      "questions": [
+        { "topic": "01-terminal", "quantity": 2 },
+        { "topic": "02-virtualizacao", "quantity": 2 },
+        { "topic": "03-contentores", "quantity": 2 },
+        { "topic": "04-servidores-web", "quantity": 2 },
+        { "topic": "05-programacao-web", "quantity": 1 },
+        { "topic": "06-comunicacao-aplicacoes", "quantity": 1 },
+        { "topic": "07-redes", "quantity": 2 },
+        { "topic": "08-redes-avancadas", "quantity": 2 },
+        { "topic": "09-representacao-digital", "quantity": 2 },
+        { "topic": "10-analise-dados", "quantity": 2 },
+        { "topic": "11-bases-dados-relacionais", "quantity": 1 },
+        { "topic": "12-nosql-comunicacao", "quantity": 1 }
+      ]
+    },
+    {
+      "part": "Open Response",
+      "classification": 10,
+      "questions": [
+      { "topic": "open-pt1", "quantity": 2 },
+      { "topic": "open-pt2", "quantity": 2 }]
+    }
+  ]
+}

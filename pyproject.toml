@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ua-exam"
+version = "0.1.0"
+description = "Moodle (GIFT) to Paper Exam Generator"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Mário Antunes", email = "mario.antunes@ua.pt"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
+]
+dependencies = []
+
+[project.scripts]
+ua-exam = "ua_exam.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ua_exam"]
