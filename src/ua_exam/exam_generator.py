@@ -95,14 +95,8 @@ translations = {
 
 def get_default_logo_path() -> str:
     """Resolves the absolute path of the packaged logo file."""
-    try:
-        # Python 3.9+
-        ref = importlib.resources.files("ua_exam.assets") / "logo_ua_cropped.pdf"
-        return str(ref)
-    except (AttributeError, TypeError):
-        # Python 3.8 fallback
-        with importlib.resources.path("ua_exam.assets", "logo_ua_cropped.pdf") as p:
-            return str(p)
+    ref = importlib.resources.files("ua_exam.assets") / "logo_ua_cropped.pdf"
+    return str(ref)
 
 
 def generate_header(config: Dict[str, Any], lang: str = "pt") -> str:

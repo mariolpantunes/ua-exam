@@ -1,6 +1,6 @@
 # <img src="assets/logo.svg" alt="logo" width="128" height="128" align="middle"> ua-exam
 
-[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue?logo=python&logoColor=white)](https://mariolpantunes.github.io/ua-exam)
+[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)](https://mariolpantunes.github.io/ua-exam)
 [![License](https://img.shields.io/badge/license-MIT-green)](https://mariolpantunes.github.io/ua-exam)
 [![Pandoc Required](https://img.shields.io/badge/dependency-Pandoc-maroon)](https://mariolpantunes.github.io/ua-exam)
 [![LaTeX Required](https://img.shields.io/badge/dependency-LaTeX-lightgrey)](https://mariolpantunes.github.io/ua-exam)
