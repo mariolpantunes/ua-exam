@@ -5,7 +5,7 @@ import logging
 import os
 import random
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from . import gift_parser, pdf_renderer
 
@@ -17,13 +17,13 @@ def clean_latex_text(text: str) -> str:
 
     1. Code blocks enclosed in backticks (`code`) -> Converts to fully escaped
     \\texttt{}
-    2. Math formulas enclosed in dollar signs ($math$) -> Preserves as is
+    2. Math formulas enclosed in dollar signs ($$math$$) -> Preserves as is
     """
     if not text:
         return ""
 
     # Helper function to escape strict text
-    def escape_chars(s):
+    def escape_chars(s: str) -> str:
         # Escape backslash FIRST to avoid double-escaping
         s = s.replace("\\", "\\textbackslash ")
         s = s.replace("{", "\\{").replace("}", "\\}")
@@ -99,7 +99,7 @@ def get_default_logo_path() -> str:
     return str(ref)
 
 
-def generate_header(config: Dict[str, Any], lang: str = "pt") -> str:
+def generate_header(config: dict[str, Any], lang: str = "pt") -> str:
     t = translations[lang]
 
     course_name = config.get("class", "Exam")
@@ -185,7 +185,7 @@ header-includes:
 """
 
 
-def render_multiple_choice(index: int, q: Dict[str, Any], points: float) -> str:
+def render_multiple_choice(index: int, q: dict[str, Any], points: float) -> str:
     q_text = clean_latex_text(q["text"])
 
     md = f"**{index}. ({points:.2g} pts) {q_text}**\n\n"
@@ -201,7 +201,7 @@ def render_multiple_choice(index: int, q: Dict[str, Any], points: float) -> str:
     return md
 
 
-def render_true_false(index: int, q: Dict[str, Any], points: float) -> str:
+def render_true_false(index: int, q: dict[str, Any], points: float) -> str:
     q_text = clean_latex_text(q["text"])
 
     md = f"**{index}. ({points:.2g} pts) {q_text}**\n\n"
@@ -213,14 +213,14 @@ def render_true_false(index: int, q: Dict[str, Any], points: float) -> str:
     return md
 
 
-def render_essay(index: int, q: Dict[str, Any], points: float) -> str:
+def render_essay(index: int, q: dict[str, Any], points: float) -> str:
     q_text = clean_latex_text(q["text"])
     md = f"**{index}. ({points:.2g} pts) {q_text}**\n\n"
     md += "\\vspace{7cm}\n\n"
     return md
 
 
-def dispatch_renderer(index: int, q: Dict[str, Any], points: float) -> str:
+def dispatch_renderer(index: int, q: dict[str, Any], points: float) -> str:
     q_type = q.get("type", "unknown")
 
     if q_type == "multiple_choice":
@@ -234,7 +234,7 @@ def dispatch_renderer(index: int, q: Dict[str, Any], points: float) -> str:
         return render_essay(index, q, points)
 
 
-def get_answer_key(q: Dict[str, Any]) -> str:
+def get_answer_key(q: dict[str, Any]) -> str:
     """Returns the correct label(s) (A, B...) for objective questions, or a
 
     placeholder for open-ended questions. Handles multiple correct answers.
@@ -259,7 +259,7 @@ def get_answer_key(q: Dict[str, Any]) -> str:
     return "---"
 
 
-def validate_scoring(config: Dict[str, Any], target_score: float = 20.0):
+def validate_scoring(config: dict[str, Any], target_score: float = 20.0):
     total_score = sum(part.get("classification", 0) for part in config["parts"])
     if abs(total_score - target_score) > 0.01:
         logger.warning(f"Scoring Mismatch: Total classification is {total_score}, expected {target_score}.")
@@ -274,7 +274,7 @@ def normalize_category(cat: str) -> str:
     return cat.strip().strip("/")
 
 
-def load_question_bank(base_folder: str, bank: Optional[Dict[str, List[Any]]] = None) -> Dict[str, List[Any]]:
+def load_question_bank(base_folder: str, bank: dict[str, list[Any]] | None = None) -> dict[str, list[Any]]:
     """Recursively scans base_folder for .gift and .txt files and builds a bank
 
     indexed by category.
@@ -296,7 +296,7 @@ def load_question_bank(base_folder: str, bank: Optional[Dict[str, List[Any]]] = 
 
 
 def generate_exams_from_config(
-    config: Dict[str, Any],
+    config: dict[str, Any],
     base_seed: int,
     output_base: str,
     compile_pdf_flag: bool = False,

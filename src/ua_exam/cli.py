@@ -9,8 +9,7 @@ import logging
 import os
 import sys
 
-from . import converters, exam_generator, gift_escaper
-from .gift_parser import parse_gift_content
+from . import converters, exam_generator, gift_escaper, gift_parser
 
 # Configure Logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -118,10 +117,14 @@ def cmd_verify(args):
         return 1
 
     # Step 2: Check structure by parsing
-    questions = parse_gift_content(content, filepath)
-    if not questions and content.strip():
-        # If the file is not empty and we got no questions, then structure is bad
-        print(f"Error: Failed to parse GIFT file {filepath}. No questions found or invalid format.")
+    try:
+        questions = gift_parser.parse_gift_content(content, filepath)
+        if not questions and content.strip():
+            # If the file is not empty and we got no questions, then structure is bad
+            print(f"Error: Failed to parse GIFT file {filepath}. No questions found or invalid format.")
+            return 1
+    except Exception as e:
+        print(f"Error: {e}")
         return 1
 
     # Step 3: Check for unescaped < and >

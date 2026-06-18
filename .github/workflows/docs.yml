@@ -33,6 +33,7 @@ jobs:
             --logo "assets/logo.svg" \
             --favicon "assets/logo.svg"
           cp -r assets docs_out/assets
+          cp -r assets docs_out/ua_exam/assets
           touch docs_out/.nojekyll
 
       - name: Deploy to GitHub Pages

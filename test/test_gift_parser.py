@@ -153,6 +153,23 @@ class TestGiftParser(unittest.TestCase):
         self.assertEqual(questions[2]["category"], "cat2")
         self.assertEqual(questions[2]["title"], "Q3")
 
+    def test_malformed_gift_files(self):
+        # Missing closing brace
+        content1 = "::Q1:: Question stem { =Correct "
+        with self.assertRaises(ValueError):
+            gift_parser.parse_gift_content(content1)
+
+        # Option control character outside braces (at start of line)
+        content2 = "::Q1:: Question stem \n =Correct { ~Incorrect }"
+        with self.assertRaises(ValueError):
+            gift_parser.parse_gift_content(content2)
+
+        # Question without answer block
+        content3 = "::Q1:: Question stem without block"
+        with self.assertRaises(ValueError):
+            gift_parser.parse_gift_content(content3)
+
+
 
 if __name__ == "__main__":
     unittest.main()
