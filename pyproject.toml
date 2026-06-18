@@ -29,8 +29,15 @@ packages = ["src/ua_exam"]
 [tool.basedpyright]
 typeCheckingMode = "standard"
 failOnWarnings = false
-venvPath = "."
-venv = "venv"
+exclude = [
+    "**/node_modules",
+    "**/__pycache__",
+    ".git",
+    "venv",
+    ".venv",
+    "out",
+    "examples"
+]
 
 [tool.ruff]
 line-length = 120
